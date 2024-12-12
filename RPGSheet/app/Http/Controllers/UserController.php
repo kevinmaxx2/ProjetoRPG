@@ -7,5 +7,7 @@ use Illuminate\View\View;
 
 class UserController
 {
-    
+    public function store(Request $request) {
+        
+    }
 }

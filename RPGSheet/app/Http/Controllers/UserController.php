@@ -7,21 +7,45 @@ use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-class UserController
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+class UserController extends Controller
 {
     public function store(Request $request) {
-        $validated = $request->validate([
-            'email' => 'bail|required|email|unique:users|max:255',
-            'password' => 'bail|required|min:8|confirmed|max:255',
-        ]);
-        $user = User::create([
-            'email' =>validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
-        return response()->json([
-            'user'  => $user,
-            'message'   => 'User created successfully'
-        ], 201);
+        try {
+            $validated = $request->validate([
+                'email' => 'bail|required|email|unique:users|max:255',
+                'password' => 'bail|required|min:8|confirmed|max:255',
+                
+            ]);
+    
+            $user = User::create([
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
+    
+            return response()->json([
+                'message' => 'User created successfully',
+                'user' => [
+                    'id' => $user->id,
+                    'email' => $user->email,
+                    // Add any other non-sensitive user data you want to return
+                ]
+            ], 201);
+    
+        } catch (ValidationException $e) {
+            Log::error('User creation failed: Validation error', ['errors' => $e->errors()]);
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('User creation failed: Unexpected error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'message' => 'An unexpected error occurred'
+            ], 500);
+        }
     }
     public function show($id) {
         try {
@@ -37,7 +61,7 @@ class UserController
         try {
             $user = User::findOrFail($id);
 
-            $validated = $request->validate([
+            $validated = $request->validated([
                 'email' => 'sometimes|email|unique:users,email,'.$user->id,
                 'password' => 'somestimes|min:8|confirmed',
             ]);

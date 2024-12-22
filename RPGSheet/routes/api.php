@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CsrfCookieController;
 
 Route::prefix('user')->group(function () {
     Route::post('/register', [UserController::class, 'store']);

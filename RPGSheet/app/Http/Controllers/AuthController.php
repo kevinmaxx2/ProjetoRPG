@@ -6,17 +6,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
-
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($request->only('email', 'password'))) {
             $request->session()->regenerate();
 
             return response()->json([
@@ -24,10 +24,9 @@ class AuthController extends Controller
                 'user' => Auth::user()
             ], 200);
         }
-
-        return response()->json([
-            'message' => 'Invalid credentials'
-        ], 422);
+        throw ValidationExcepton::withMessages([
+            'email' => ['The provided creedntials are incorrect.'],
+        ]);
     }
         public function logout(Request $request) 
         {

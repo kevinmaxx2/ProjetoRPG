@@ -12,16 +12,18 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
-         $request->validate([
+         $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
-        if (Auth::attempt($request->only('email', 'password'))) {
-            $request->session()->regenerate();
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+            $token = $user->createToken('authtoken')->plainTextToken;
 
             return response()->json([
                 'message' => 'Login sucessful',
-                'user' => Auth::user()
+                'user' => $user,
+                'token' => $token
             ], 200);
         }
         throw ValidationExcepton::withMessages([

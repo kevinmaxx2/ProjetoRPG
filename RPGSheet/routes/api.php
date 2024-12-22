@@ -4,16 +4,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
+use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
 
-Route::middleware(['web'])->group(function () {
-    Route::get('/sanctum/csrf-cookie', function () {
-        return response()->json(['message' => 'CSRF cookie set'], 204);
-    });
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-});
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [UserController::class, 'store']);
+
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
     Route::prefix('user')->group(function () {
         Route::get('/{id}', [UserController::class, 'show']);
         Route::put('/{id}', [UserController::class, 'update']);
@@ -21,4 +19,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 });
 
-Route::post('/register', [UserController::class, 'store']);
+
+Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show']);

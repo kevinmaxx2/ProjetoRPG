@@ -30,7 +30,7 @@ class UserController extends Controller
                 'user' => [
                     'id' => $user->id,
                     'email' => $user->email,
-                    // Add any other non-sensitive user data you want to return
+                    
                 ]
             ], 201);
     
@@ -63,7 +63,7 @@ class UserController extends Controller
 
             $validated = $request->validated([
                 'email' => 'sometimes|email|unique:users,email,'.$user->id,
-                'password' => 'somestimes|min:8|confirmed',
+                'password' => 'sometimes|min:8|confirmed',
             ]);
 
             if(isset($validated['email'])) {

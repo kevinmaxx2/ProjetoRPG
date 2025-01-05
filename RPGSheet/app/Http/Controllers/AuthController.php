@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -32,11 +34,17 @@ class AuthController extends Controller
     }
         public function logout(Request $request) 
         {
-            Auth::guard('web')->logout();
-            
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            Log::info('Logout process started', ['user_id' => $request->user()->id ?? 'No User']);
 
-            return response()->json(['message' => 'Loggerd out sucessfully']);
+            if (EnsureFrontendRequestAreStateful::fromFrontend($request)) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidated();
+                $request->session()->regenerateToken();
+            } else {
+                $request->user()->currentAcessToken()->delete();
+            }
+
+            Log::info('Logout process completed');
+            return response()->json(['message' => 'Logged out sucessfully'], 200);
         }
 }

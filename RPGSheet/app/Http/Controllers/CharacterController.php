@@ -12,6 +12,8 @@ class CharacterController extends Controller
             'user_id'       => auth()->id(),
             'name'          => 'bail|required|max:255',
             'chronicle'     => 'bail|required|max:255',
+            'level'         => 'bail|required|integer|min:1',
+            'xp'            => 'bail|required|integer|min:0',
             'intelligence'  => 'bail|required|integer|min:0|max:50',
             'dexterity'     => 'bail|required|integer|min:0|max:50',
             'charisma'      => 'bail|required|integer|min:0|max:50',
@@ -21,19 +23,13 @@ class CharacterController extends Controller
         ]);
 
         $character = Character::create([
-            'name'  => $validated['name'],
-            'chronicle'  => $validated['chronicle'],
-            'intelligence'  => $validated['intelligence'],
-            'dexterity'  => $validated['dexterity'],
-            'charisma'  => $validated['charisma'],
-            'strength'  => $validated['strength'],
-            'wisdom'  => $validated['wisdom'],
-            'constitution'  => $validated['constitution'],
+            'user_id' => auth()->id(),
+            ...$validated
         ]);
 
         return response()->json([
             'message' => 'Character created sucessfuly',
-            ''
+            'character' => $character
         ], 201);
     }
 

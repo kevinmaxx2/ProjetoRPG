@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Character;
+use Illuminate\Support\Str;
 
 class CharacterController extends Controller
 {
     public function store(Request $request) {
         $validated = $request->validate([
-            'user_id'       => auth()->id(),
             'name'          => 'bail|required|max:255',
             'chronicle'     => 'bail|required|max:255',
             'level'         => 'bail|required|integer|min:1',
@@ -24,6 +24,7 @@ class CharacterController extends Controller
 
         $character = Character::create([
             'user_id' => auth()->id(),
+            'unique_id' => Str::uuid(),
             ...$validated
         ]);
 
@@ -33,9 +34,15 @@ class CharacterController extends Controller
         ], 201);
     }
 
-    public function show($id) {
+    public function show($uniqueId) {
         try {
-            $character = Character::findOrFail($id);
+            $character = Character::where('unique_id', $uniqueId)->firstOrFail();
+
+            if ($character->user_id !== auth()->id()) {
+                return response()->json([
+                    'message'   => 'Unathorized acess'
+                ], 403);
+            }
             return response()->json($character);
         } catch (\Exception $e) {
             return response()->json([
@@ -45,22 +52,29 @@ class CharacterController extends Controller
         }
     }
 
-    public function update(Request $request, $id) {
+    public function update(Request $request, $uniqueId) {
         try {
-            $character = Character::findOrFail($id);
+            $character = Character::where('unique_id', $uniqueId)->firstOrFail();
 
+            if ($character->user_id !== auth()->id()) {
+                return response()->json([
+                    'message'   => 'Unathorized acess'
+                ], 403);
+            }
             $validated = $request->validate([
                 'name'          => 'sometimes|max:255',
                 'chronicle'     => 'sometimes|max:255',
-                'intelligence'  => 'sometimes|max:50',
-                'dexterity'     => 'sometimes|max:50',
-                'charisma'      => 'sometimes|max:50',
-                'strength'      => 'sometimes|max:50',
-                'wisdom'        => 'sometimes|max:50',
-                'constitution'  => 'sometimes|max:50'
+                'level'         => 'sometimes|integer|min:1',
+                'xp'            => 'sometimes|integer|min:0',
+                'intelligence'  => 'sometimes|integer|max:50',
+                'dexterity'     => 'sometimes|integer|max:50',
+                'charisma'      => 'sometimes|integer|max:50',
+                'strength'      => 'sometimes|integer|max:50',
+                'wisdom'        => 'sometimes|integer|max:50',
+                'constitution'  => 'sometimes|integer|max:50'
             ]);
 
-            $character->save();
+            $character->update($validated);
             return response()->json([
                 'character' => $character,
                 'message'   => 'Character updated sucessfully'
@@ -71,9 +85,15 @@ class CharacterController extends Controller
             ], 404);
         }
     }
-    public function destroy($id) {
+    public function destroy($uniqueId) {
         try {
-            $character = Character::findOrFail($id);
+            $character = Character::where('unique_id', $uniqueId)->firstOrFail();
+
+            if ($character->user_id !== auth()->id()) {
+                return response()->json([
+                    'message'   => 'Unathorized Acess'
+                ], 403);
+            }
             $character->delete();
 
             return response()->json([
@@ -84,5 +104,10 @@ class CharacterController extends Controller
                 'message'   => 'Character not found'
             ], 404);
         }
+    }
+
+    public function index() {
+        $character = Character::where('user_id', auth()->id())->get();
+        return response()->json($characters);
     }
 }

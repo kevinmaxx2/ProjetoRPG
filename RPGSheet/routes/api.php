@@ -17,9 +17,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/{id}', [UserController::class, 'show']);
         Route::put('/{id}', [UserController::class, 'update']);
         Route::delete('/{id}', [UserController::class, 'destroy']);
-        Route::post('/characters', [CharacterController::class, 'store']);
+    });
+    Route::prefix('characters')->group(function () {
+        Route::get('/', [CharacterController::class, 'index']);
+        Route::get('/', [CharacterController::class, 'store']);
+        Route::post('/{uniqueId}', [CharacterController::class, 'show']);
+        Route::put('/{uniqueId}', [CharacterController::class, 'update']);
+        Route::delete('/{uniqueId}', [CharacterController::class, 'destroy']);
     });
 });
-
 
 Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show']);
